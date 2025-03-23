@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { User } from 'src/domain/entities/user.entity';
 import { UserRepository } from 'src/infrastructure/repository/user.repository';
@@ -19,6 +19,10 @@ export class AuthService {
     password: string,
     firstname: string,
   ): Promise<User> {
+    const existingUser = await this.userRepository.findByEmail(email);
+    if (existingUser) {
+      throw new ConflictException("L'email est déjà utilisé");
+    }
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = new User(
       Date.now().toString(),
